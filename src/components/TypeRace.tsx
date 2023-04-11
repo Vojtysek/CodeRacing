@@ -17,17 +17,18 @@ const TypeRace = () => {
   const [isPlaying, setIsPlaying] = createSignal(false);
   const [firstGame, setFirstGame] = createSignal(true);
   const [language, setLanguage] = createSignal();
+  const [restart, setRestart] = createSignal(false);
 
   const codeMixed = () => {
     switch (language()) {
       case "react":
         console.log("react");
-        return react.sort(() => Math.random() - 0.5).slice(0, 1);
+        return react.sort(() => Math.random() - 0.5).slice(0, 5);
       case "solid":
         console.log("solid");
         return solid.sort(() => Math.random() - 0.5).slice(0, 5);
       default:
-        return react.sort(() => Math.random() - 0.5).slice(0, 1);
+        return react.sort(() => Math.random() - 0.5).slice(0, 5);
     }
   };
   const currentWord: Accessor<string> = createMemo(
@@ -93,6 +94,12 @@ const TypeRace = () => {
         } else {
           setMistakes(mistakes() + 1);
         }
+      } else if (event.key === "Tab") {
+        //restart game
+        setIsPlaying(false);
+        //go to next word
+        setCurrentIndex(Math.min(currentIndex() + 1, currentIndex() + 5));
+        setRestart(true);
       } else if (
         char !== correctChar &&
         event.key !== " " &&
@@ -102,7 +109,6 @@ const TypeRace = () => {
         !event.shiftKey &&
         event.key !== "Enter" &&
         event.key !== "Dead" &&
-        event.key !== "Tab" &&
         event.key !== "CapsLock" &&
         !/^[0-9]$/.test(event.key) &&
         !/Arrow|'/.test(event.key) &&
@@ -118,6 +124,7 @@ const TypeRace = () => {
       }
     } else if (event.key === " " && language()) {
       setIsPlaying(true);
+      setRestart(false);
       setCurrentIndex(0);
       setTyped("");
       setMistakes(0);
@@ -166,8 +173,20 @@ const TypeRace = () => {
             </>
           ) : (
             <>
-              <h1 class="text-word">Game Over</h1>
-              <h2 class="text-word">Mistakes: {mistakes()}</h2>
+              {restart() ? (
+                <>
+                  <h1>Press space to start over</h1>
+                </>
+              ) : (
+                <>
+                  <h1 class="text-word">Game Over</h1>
+                  <h1 class="text-word text-black">Press space to restart</h1>
+                  <div class="flex flex-row gap-12">
+                    <h2 class="text-word">Mistakes: {mistakes()}</h2>
+                    <h2 class="text-word">WPM: {WPM()}</h2>
+                  </div>
+                </>
+              )}
             </>
           )}
         </>
