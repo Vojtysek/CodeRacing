@@ -29,4 +29,8 @@ const solid: string[] = [
   `const [isModalOpen, setIsModalOpen] = createSignal(false);`,
 ];
 
-export { react, solid };
+const vanila: string[] = [
+  `document.getElementById("myDiv").innerHTML = "Hello World!";`,
+]
+
+export { react, solid, vanila };

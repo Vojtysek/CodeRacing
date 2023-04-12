@@ -39,6 +39,7 @@ export default function Home() {
     ).data.user?.user_metadata;
     if (_user) {
       setUser(_user);
+      localStorage.setItem("username", JSON.stringify(_user.user_name));
     }
   }
 
@@ -91,13 +92,15 @@ export default function Home() {
               color="black"
             />
           </NavLink>
-          <NavLink href="/leaderboard">
-            <FaSolidClipboardList
-              class="cursor-pointer"
-              size={50}
-              color="black"
-            />
-          </NavLink>
+          {user?.user_name ? (
+            <NavLink href="/leaderboard">
+              <FaSolidClipboardList
+                class="cursor-pointer"
+                size={50}
+                color="black"
+              />
+            </NavLink>
+          ) : null}
           <Routes>
             <Route path="/helper" element={<Helper />} />
             <Route path="/leaderboard" element={<LeaderBoard />} />
@@ -114,7 +117,7 @@ export default function Home() {
       </div>
       <main class="items-center w-screen h-2/3  text-gray-400 flex justify-center flex-col">
         <Routes>
-          <Route path="/" element={<TypeRace />} />
+          <Route path="/" element={<TypeRace __user={user} />} />
         </Routes>
         <Footer />
       </main>

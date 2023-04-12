@@ -8,9 +8,11 @@ import {
   Accessor,
   Show,
 } from "solid-js";
-import { react, solid } from "./code";
+import { react, solid, vanila } from "./code";
+import { supabase } from "../client";
+import { UserMetadata } from "@supabase/supabase-js";
 
-const TypeRace = () => {
+const TypeRace = (__user?: UserMetadata) => {
   const [currentIndex, setCurrentIndex] = createSignal(0);
   const [typed, setTyped] = createSignal("");
   const [mistakes, setMistakes] = createSignal(0);
@@ -22,13 +24,13 @@ const TypeRace = () => {
   const codeMixed = () => {
     switch (language()) {
       case "react":
-        console.log("react");
-        return react.sort(() => Math.random() - 0.5).slice(0, 5);
+        return react.sort(() => Math.random() - 0.5).slice(0, 1);
       case "solid":
-        console.log("solid");
-        return solid.sort(() => Math.random() - 0.5).slice(0, 5);
+        return solid.sort(() => Math.random() - 0.5).slice(0, 1);
+      case "vanila":
+        return vanila.sort(() => Math.random() - 0.5).slice(0, 1);
       default:
-        return react.sort(() => Math.random() - 0.5).slice(0, 5);
+        return react.sort(() => Math.random() - 0.5).slice(0, 1);
     }
   };
   const currentWord: Accessor<string> = createMemo(
@@ -64,6 +66,31 @@ const TypeRace = () => {
     return Math.round((words / time) * 60);
   });
 
+  const checkUserData = async () => {
+    const { data, error } = await supabase
+      .from("Leaderboard")
+      .select("*")
+      .eq("player_name", __user?.__user.user_name);
+    if (data?.length === 0) {
+      supabase
+        .from("Leaderboard")
+        .insert([
+          {
+            player_name: __user?.__user.user_name,
+            best_time: WPM(),
+          },
+        ])
+    }
+    if (data?.length !== 0) {
+      if (data[0].best_time < WPM()) {
+        supabase
+          .from("Leaderboard")
+          .update({ best_time: WPM() })
+          .eq("player_name", __user?.__user.user_name)
+      }
+    }
+  };
+
   const handleInputKeyDown = (event: KeyboardEvent) => {
     if (isPlaying()) {
       setFirstGame(false);
@@ -75,6 +102,9 @@ const TypeRace = () => {
         if (typed().length === currentWord().length) {
           if (currentIndex() === codeMixed().length - 1) {
             setIsPlaying(false);
+            if (__user) {
+              checkUserData();
+            }
           } else {
             setCurrentIndex(Math.min(currentIndex() + 1, currentIndex() + 5));
             setTyped("");
@@ -95,9 +125,7 @@ const TypeRace = () => {
           setMistakes(mistakes() + 1);
         }
       } else if (event.key === "Tab") {
-        //restart game
         setIsPlaying(false);
-        //go to next word
         setCurrentIndex(Math.min(currentIndex() + 1, currentIndex() + 5));
         setRestart(true);
       } else if (
@@ -168,6 +196,7 @@ const TypeRace = () => {
                   <option selected>Choose language</option>
                   <option value="react">React</option>
                   <option value="solid">Solid</option>
+                  <option value="vanila">Vanila</option>
                 </select>
               </Show>
             </>
