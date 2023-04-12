@@ -20,6 +20,7 @@ const TypeRace = (__user?: UserMetadata) => {
   const [firstGame, setFirstGame] = createSignal(true);
   const [language, setLanguage] = createSignal();
   const [restart, setRestart] = createSignal(false);
+  const [time, setTime] = createSignal(0);
 
   const codeMixed = () => {
     switch (language()) {
@@ -58,13 +59,7 @@ const TypeRace = (__user?: UserMetadata) => {
     window.addEventListener("keydown", handleInputKeyDown);
   });
 
-  const startTime: Accessor<number | undefined> = createMemo(() => Date.now());
-
-  const WPM: Accessor<number> = createMemo(() => {
-    const time = (Date.now() - startTime()!) / 1000;
-    const words = typed().split("").length;
-    return Math.round((words / time) * 60);
-  });
+  let timer;
 
   const checkUserData = async () => {
     const { data, error } = await supabase
@@ -78,16 +73,16 @@ const TypeRace = (__user?: UserMetadata) => {
         .insert([
           {
             player_name: __user?.__user.user_name,
-            best_time: WPM(),
+            best_time: time(),
           },
         ])
         .then((res) => {});
     }
     if (data?.length !== 0) {
-      if (data[0].best_time < WPM()) {
+      if (data[0].best_time < time()) {
         supabase
           .from("Leaderboard")
-          .update({ best_time: WPM() })
+          .update({ best_time: time() })
           .eq("player_name", __user?.__user.user_name)
           .then((res) => {});
       }
@@ -95,16 +90,25 @@ const TypeRace = (__user?: UserMetadata) => {
     if (error) console.log(error);
   };
 
+  let x: boolean = true;
   const handleInputKeyDown = (event: KeyboardEvent) => {
     if (isPlaying()) {
+      if (x) {
+        timer = setInterval(() => {
+          setTime(Math.round((time() + 0.1) * 100) / 100);
+        }, 100);
+        x = false;
+      }
       setFirstGame(false);
       const char = event.key.toLowerCase();
-      const correctChar = currentWord()[typed().length].toLowerCase() || " ";
+      const correctChar: string =
+        currentWord()[typed().length].toLowerCase() || " ";
 
       if (char === correctChar) {
         setTyped(typed() + event.key);
         if (typed().length === currentWord().length) {
           if (currentIndex() === codeMixed().length - 1) {
+            clearInterval(timer);
             setIsPlaying(false);
             if (__user) {
               checkUserData();
@@ -178,7 +182,7 @@ const TypeRace = (__user?: UserMetadata) => {
           </h1>
           <div class="flex flex-row gap-12">
             <h2 class="text-word">Miss: {mistakes()}</h2>
-            <h2 class="text-word">WPM: {WPM()}</h2>
+            <h2 class="text-word">WPM: {time()}</h2>
           </div>
         </>
       ) : (
@@ -216,7 +220,7 @@ const TypeRace = (__user?: UserMetadata) => {
                   <h1 class="text-word text-black">Press space to restart</h1>
                   <div class="flex flex-row gap-12">
                     <h2 class="text-word">Mistakes: {mistakes()}</h2>
-                    <h2 class="text-word">WPM: {WPM()}</h2>
+                    <h2 class="text-word">Time: {time()}</h2>
                   </div>
                 </>
               )}

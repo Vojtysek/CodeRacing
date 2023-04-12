@@ -31,7 +31,7 @@ const LeaderBoard = () => {
         <h1 class="text-word">Leaderboard</h1>
         <div class="flex flex-row justify-between">
           <p class="text-3xl">Player</p>
-          <p class="text-3xl">WPP</p>
+          <p class="text-3xl">Time</p>
         </div>
         <div class="h-[2px] bg-red-400 mb-16" />
         <div class="flex flex-col gap-4">{
