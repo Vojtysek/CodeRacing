@@ -71,6 +71,7 @@ const TypeRace = (__user?: UserMetadata) => {
       .from("Leaderboard")
       .select("*")
       .eq("player_name", __user?.__user.user_name);
+
     if (data?.length === 0) {
       supabase
         .from("Leaderboard")
@@ -80,6 +81,7 @@ const TypeRace = (__user?: UserMetadata) => {
             best_time: WPM(),
           },
         ])
+        .then((res) => {});
     }
     if (data?.length !== 0) {
       if (data[0].best_time < WPM()) {
@@ -87,8 +89,10 @@ const TypeRace = (__user?: UserMetadata) => {
           .from("Leaderboard")
           .update({ best_time: WPM() })
           .eq("player_name", __user?.__user.user_name)
+          .then((res) => {});
       }
     }
+    if (error) console.log(error);
   };
 
   const handleInputKeyDown = (event: KeyboardEvent) => {
