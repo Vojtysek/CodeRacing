@@ -74,17 +74,20 @@ const TypeRace = (__user?: UserMetadata) => {
           {
             player_name: __user?.__user.user_name,
             best_time: time(),
+            miss: mistakes(),
           },
         ])
         .then((res) => {});
     }
     if (data?.length !== 0) {
-      if (data[0].best_time < time()) {
-        supabase
-          .from("Leaderboard")
-          .update({ best_time: time() })
-          .eq("player_name", __user?.__user.user_name)
-          .then((res) => {});
+      if (data[0].miss > mistakes()) {
+        if (data[0].best_time > time()) {
+          supabase
+            .from("Leaderboard")
+            .update({ best_time: time(), miss: mistakes() })
+            .eq("player_name", __user?.__user.user_name)
+            .then((res) => {});
+        }
       }
     }
     if (error) console.log(error);

@@ -13,10 +13,6 @@ const LeaderBoard = () => {
     getData();
   });
 
-  const sortLeaderboard = () => {
-    return leaderboard().sort((a: any, b: any) => b.best_time - a.best_time);
-  };
-
   return (
     <>
       <div
@@ -32,14 +28,16 @@ const LeaderBoard = () => {
         <div class="flex flex-row justify-between">
           <p class="text-3xl">Player</p>
           <p class="text-3xl">Time</p>
+          <p class="text-3xl">Mistakes</p>
         </div>
         <div class="h-[2px] bg-red-400 mb-16" />
         <div class="flex flex-col gap-4">{
-          sortLeaderboard().map((item: any) => {
+          leaderboard().map((item: any) => {
             return (
               <div class="flex flex-row justify-between">
                 <p class="text-2xl">{item.player_name}</p>
                 <p class="text-2xl">{item.best_time}</p>
+                <p class="text-2xl">{item.miss}</p>
               </div>
             );
           })
