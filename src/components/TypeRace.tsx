@@ -7,6 +7,7 @@ import {
   For,
   Accessor,
   Show,
+  createEffect,
 } from "solid-js";
 import { react, solid, vanila } from "./code";
 import { supabase } from "../client";
@@ -21,6 +22,7 @@ const TypeRace = (__user?: UserMetadata) => {
   const [language, setLanguage] = createSignal();
   const [restart, setRestart] = createSignal(false);
   const [time, setTime] = createSignal(0);
+  const [canWrite, setCanWrite] = createSignal(false);
 
   const handleLanguage = (lang: string[]): string[] => {
     return lang.sort(() => Math.random() - 0.5).slice(0, 1);
@@ -38,6 +40,23 @@ const TypeRace = (__user?: UserMetadata) => {
         return handleLanguage(react);
     }
   };
+
+  const [currentLetterIndex, setCurrentLetterIndex] = createSignal(0);
+
+  createEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentLetterIndex((index) =>
+        index < letters().length ? index + 1 : index
+      );
+    }, 100);
+
+    return () => clearInterval(intervalId);
+  });
+
+  createEffect(() => {
+    setCanWrite(currentLetterIndex() === letters().length);
+  });
+
   const currentWord: Accessor<string> = createMemo(
     () => codeMixed()[currentIndex()]
   );
@@ -96,7 +115,7 @@ const TypeRace = (__user?: UserMetadata) => {
 
   let x: boolean = true;
   const handleInputKeyDown = (event: KeyboardEvent) => {
-    if (isPlaying()) {
+    if (isPlaying() && canWrite()) {
       if (x) {
         timer = setInterval(() => {
           setTime(Math.round((time() + 0.1) * 100) / 100);
@@ -176,13 +195,23 @@ const TypeRace = (__user?: UserMetadata) => {
       {isPlaying() ? (
         <>
           <h1 class="">
-            <For each={letters()}>
-              {({ char, color, isActive }) => (
-                <span class={isActive ? "active" : ""} style={{ color }}>
-                  {char}
-                </span>
-              )}
-            </For>
+            {canWrite() ? (
+              <For each={letters()}>
+                {({ char, color, isActive }, index) => (
+                  <span class={isActive ? "act" : ""} style={{ color }}>
+                    {char}
+                  </span>
+                )}
+              </For>
+            ) : (
+              <For each={letters().slice(0, currentLetterIndex())}>
+                {({ char, color, isActive }, index) => (
+                  <span class={isActive ? "act" : ""} style={{ color }}>
+                    {char}
+                  </span>
+                )}
+              </For>
+            )}
           </h1>
           <div class="flex flex-row gap-12">
             <h2 class="text-word">Miss: {mistakes()}</h2>
@@ -221,7 +250,6 @@ const TypeRace = (__user?: UserMetadata) => {
               ) : (
                 <>
                   <h1 class="text-word">Game Over</h1>
-                  <h1 class="text-word text-black">Press space to restart</h1>
                   <div class="flex flex-row gap-12">
                     <h2 class="text-word">Mistakes: {mistakes()}</h2>
                     <h2 class="text-word">Time: {time()}</h2>
