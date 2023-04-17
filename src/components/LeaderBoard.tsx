@@ -3,10 +3,17 @@ import { supabase } from "../client";
 import { UserMetadata } from "@supabase/supabase-js";
 
 const LeaderBoard = (__user?: UserMetadata) => {
-  const [leaderboard, setLeaderboard] = createSignal<any>([]);
+  const [leaderboard, setLeaderboard] = createSignal<Array<any>>([]);
 
   const getData = async () => {
     const { data } = await supabase.from("Leaderboard").select("*");
+    //sort data by miss and time
+    data.sort((a: any, b: any) => {
+      if (a.miss === b.miss) {
+        return a.best_time - b.best_time;
+      }
+      return a.miss - b.miss;
+    });
     setLeaderboard(data);
   };
 
