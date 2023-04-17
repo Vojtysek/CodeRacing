@@ -22,16 +22,20 @@ const TypeRace = (__user?: UserMetadata) => {
   const [restart, setRestart] = createSignal(false);
   const [time, setTime] = createSignal(0);
 
-  const codeMixed = () => {
+  const handleLanguage = (lang: string[]): string[] => {
+    return lang.sort(() => Math.random() - 0.5).slice(0, 1);
+  };
+
+  const codeMixed = (): string[] => {
     switch (language()) {
       case "react":
-        return react.sort(() => Math.random() - 0.5).slice(0, 1);
+        return handleLanguage(react);
       case "solid":
-        return solid.sort(() => Math.random() - 0.5).slice(0, 1);
+        return handleLanguage(solid);
       case "vanila":
-        return vanila.sort(() => Math.random() - 0.5).slice(0, 1);
+        return handleLanguage(vanila);
       default:
-        return react.sort(() => Math.random() - 0.5).slice(0, 1);
+        return handleLanguage(react);
     }
   };
   const currentWord: Accessor<string> = createMemo(
@@ -68,16 +72,13 @@ const TypeRace = (__user?: UserMetadata) => {
       .eq("player_name", __user?.__user.user_name);
 
     if (data?.length === 0) {
-      supabase
-        .from("Leaderboard")
-        .insert([
-          {
-            player_name: __user?.__user.user_name,
-            best_time: time(),
-            miss: mistakes(),
-          },
-        ])
-        .then((res) => {});
+      supabase.from("Leaderboard").insert([
+        {
+          player_name: __user?.__user.user_name,
+          best_time: time(),
+          miss: mistakes(),
+        },
+      ]);
     }
     if (data?.length !== 0) {
       if (data[0].miss > mistakes()) {
@@ -171,7 +172,7 @@ const TypeRace = (__user?: UserMetadata) => {
   };
 
   return (
-    <div class="items-center text-center text-word justify-between  flex-col flex rounded-3xl">
+    <div class="items-center text-center text-word justify-between flex-col flex rounded-3xl">
       {isPlaying() ? (
         <>
           <h1 class="">

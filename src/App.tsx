@@ -103,7 +103,10 @@ export default function Home() {
           ) : null}
           <Routes>
             <Route path="/helper" element={<Helper />} />
-            <Route path="/leaderboard" element={<LeaderBoard />} />
+            <Route
+              path="/leaderboard"
+              element={<LeaderBoard __user={user} />}
+            />
           </Routes>
         </div>
       </div>
@@ -112,15 +115,24 @@ export default function Home() {
 
   return (
     <div class="w-screen h-screen">
-      <div class="h-1/6">
-        <Navbar />
-      </div>
-      <main class="items-center w-screen h-2/3  text-gray-400 flex justify-center flex-col">
-        <Routes>
-          <Route path="/" element={<TypeRace __user={user} />} />
-        </Routes>
-        <Footer />
-      </main>
+      {loading() ? (
+        <div class="flex items-center justify-center w-screen h-screen flex-col gap-12">
+          <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-red-400"></div>
+          <h1 class="text-4xl font-bold text-black">Loading...</h1>
+        </div>
+      ) : (
+        <>
+          <div class="h-1/6">
+            <Navbar />
+          </div>
+          <main class="items-center w-screen h-2/3 flex justify-center flex-col">
+            <Routes>
+              <Route path="/" element={<TypeRace __user={user} />} />
+            </Routes>
+            <Footer />
+          </main>
+        </>
+      )}
     </div>
   );
 }
